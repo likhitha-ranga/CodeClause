@@ -1,1 +1,155 @@
 
+
+from tkinter import *
+import math
+root=Tk()
+root.title("Calculator")
+root.resizable(width=False,height=False)
+root.geometry("438x573+460+40")
+coverFrame=Frame(root,bd=20,pady=2,relief=RIDGE)
+coverFrame.grid()
+coverMainFrame=Frame(coverFrame,bd=10,pady=2,bg="cadetblue",relief=RIDGE)
+coverMainFrame.grid()
+MainFrame=Frame(coverMainFrame,bd=5,pady=2,relief=RIDGE)
+MainFrame.grid()
+class Calculator():
+    def __init__(self):
+        self.total=0
+        self.current=""
+        self.input_value=True
+        self.check_sum=False
+        self.op=""
+        self.result=False
+    def numentry(self,num):
+            self.result=False
+            fnum=entDisplay.get()
+            snum=str(num)
+            if self.input_value:
+                self.current=snum
+                self.input_value=False
+            else:
+                if snum=='.':
+                    if snum in fnum:
+                        return 
+                self.current=fnum+snum
+            self.display(self.current)
+    def display(self,value):
+        entDisplay.delete(0,END)
+        entDisplay.insert(0,value)
+    def Arithmetic(self,expression):
+        tokens = expression.replace('x', '*').replace('%', '/100').replace(' ', '')
+        values = []
+        ops = []
+        i = 0
+        while i < len(tokens):
+            if tokens[i].isdigit() or tokens[i] == '.':
+                sbuf = ''
+                while i < len(tokens) and (tokens[i].isdigit() or tokens[i] == '.'):
+                    sbuf += tokens[i]
+                    i += 1
+                values.append(float(sbuf))
+                i -= 1
+            elif tokens[i] == '(':
+                ops.append(tokens[i])
+            elif tokens[i] == ')':
+                while ops[-1] != '(':
+                    values.append(Calculator.applyOp(ops.pop(), values.pop(), values.pop()))
+                ops.pop()
+            elif tokens[i] in ['+', '-', '*', '/', '%','^','√']:
+                while ops and Calculator.hasPrecedence(tokens[i], ops[-1]):
+                    if ops[-1]=='√':
+                        values.append(Calculator.applyOp(ops.pop(), (0.5),values.pop()))
+                    else:
+                        values.append(Calculator.applyOp(ops.pop(), values.pop(), values.pop()))
+                ops.append(tokens[i])
+            i += 1
+        while ops:
+            if ops[-1]=='√':
+                values.append(Calculator.applyOp(ops.pop(), (0.5),values.pop()))
+            else:
+                values.append(Calculator.applyOp(ops.pop(), values.pop(), values.pop()))
+        return values.pop()
+    def applyOp(op, b, a):
+        if op == '+':
+            return a + b
+        elif op == '-':
+            return a - b
+        elif op == '*':
+            return a * b
+        elif op == '/':
+            if b == 0:
+                raise ValueError("Cannot divide by zero")
+            return a / b
+        elif op=='%':
+            return a%b
+        elif op == '√':
+            return math.pow(a, b)
+        elif op=='^':
+            return math.pow(a, b)
+    def hasPrecedence(op1, op2):
+        if op2 == '(' or op2 == ')':
+            return False
+        if (op1 in ['*', '/', '%', '^'] and op2 in ['+','-']):
+            return False
+        else:
+            return True
+
+added_value=Calculator()
+entDisplay=Entry(MainFrame,font=("arial",18,"bold"),bd=14,width=26,bg="cadetblue",justify=RIGHT)
+entDisplay.grid(row=0,column=0,columnspan=4,pady=1)
+entDisplay.insert(0," ")
+numberpad="789456123"
+i=0
+btn=[]
+for j in range(3,6):
+    for k in range(3):
+        btn.append(Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text=numberpad[i]))
+        btn[i].grid(row=j,column=k)
+        btn[i]["command"]=lambda x=numberpad[i]:added_value.numentry(x)
+        i+=1
+btnmod=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="%",bg="cadetblue")
+btnmod.grid(row=1,column=0)
+btnmod["command"]=lambda :added_value.numentry("%")
+btnsqr=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="√",bg="cadetblue")
+btnsqr.grid(row=1,column=1)
+btnsqr["command"]=lambda :added_value.numentry("√")
+btnr=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="(",bg="cadetblue")
+btnr.grid(row=2,column=0)
+btnr["command"]=lambda :added_value.numentry("(")
+btnl=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text=")",bg="cadetblue")
+btnl.grid(row=2,column=1)
+btnl["command"]=lambda :added_value.numentry(")")
+btndel=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="del",bg="cadetblue")
+btndel.grid(row=2,column=2)
+btndel["command"]=lambda :added_value.display(entDisplay.get()[:-1])
+btndiv=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="/",bg="cadetblue")
+btndiv.grid(row=2,column=3)
+btndiv["command"]=lambda :added_value.numentry("/")
+btnneg=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="+/-")
+btnneg.grid(row=6,column=0)
+btnneg["command"]=lambda :added_value.display(~int(entDisplay.get())+1)
+btnzer=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="0")
+btnzer.grid(row=6,column=1)
+btnzer["command"]=lambda :added_value.numentry(0)
+btndot=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text=".")
+btndot.grid(row=6,column=2)
+btndot["command"]=lambda :added_value.numentry(".")
+btnequ=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="=",bg="cadetblue")
+btnequ.grid(row=6,column=3)
+btnequ["command"]=lambda :added_value.display(added_value.Arithmetic(entDisplay.get()))
+btnplus=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="+",bg="cadetblue")
+btnplus.grid(row=5,column=3)
+btnplus["command"]=lambda :added_value.numentry("+")
+btnminus=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="-",bg="cadetblue")
+btnminus.grid(row=4,column=3)
+btnminus["command"]=lambda :added_value.numentry("-")
+btnmul=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="x",bg="cadetblue")
+btnmul.grid(row=3,column=3)
+btnmul["command"]=lambda :added_value.numentry("x")
+btncap=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text="^",bg="cadetblue")
+btncap.grid(row=1,column=3)
+btncap["command"]=lambda :added_value.numentry("^")
+btnclear=Button(MainFrame,width=6,height=2,font=('arial',16,'bold'),bd=4,text=chr(67),bg="cadetblue")
+btnclear.grid(row=1,column=2)
+btnclear["command"]=lambda :added_value.display("")
+root.mainloop()
